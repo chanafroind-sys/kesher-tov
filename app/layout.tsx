@@ -3,9 +3,9 @@ import { Heebo } from "next/font/google";
 import "./globals.css";
 
 const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
+  subsets: ["hebrew"],
   variable: "--font-heebo",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
