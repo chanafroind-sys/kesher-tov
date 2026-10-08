@@ -95,3 +95,61 @@ export async function setPaymentPreference(
   }
   return notImplementedError();
 }
+
+/** Irreversibly delete current user account, CV file, helper links, ratings and session */
+export async function deleteAccount(): Promise<ActionResult<{ success: boolean }>> {
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    cookieStore.delete("kt_session");
+  } catch {
+    // Outside request store (e.g. during unit tests)
+  }
+
+  if (isMockMode()) {
+    return { ok: true, data: { success: true } };
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { ok: false, error: "משתמשת לא מחוברת" };
+    }
+
+    // 1. Delete CV file in storage
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("cv_storage_path")
+      .eq("id", user.id)
+      .single();
+
+    const profile = profileData as { cv_storage_path: string | null } | null;
+
+    if (profile?.cv_storage_path) {
+      await supabase.storage.from("cvs").remove([profile.cv_storage_path]);
+    }
+
+    // 2. Delete helper links
+    await supabase.from("helper_links").delete().eq("helper_id", user.id);
+
+    // 3. Delete ratings given/received
+    await supabase
+      .from("ratings")
+      .delete()
+      .or(`rater_id.eq.${user.id},rated_id.eq.${user.id}`);
+
+    // 4. Delete profile & sign out
+    await supabase.from("profiles").delete().eq("id", user.id);
+    await supabase.auth.signOut();
+
+    return { ok: true, data: { success: true } };
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : "שגיאה במחיקת החשבון";
+    return { ok: false, error: errMsg };
+  }
+}

@@ -167,6 +167,26 @@ function LoginForm() {
                   placeholder="name@example.com"
                   autoFocus
                 />
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-ink-700">
+                  <input
+                    type="checkbox"
+                    required
+                    defaultChecked
+                    className="size-4 mt-0.5 rounded border-ink-900/20 text-brand-600 focus:ring-brand-500"
+                  />
+                  <span>
+                    קראתי ואני מסכימה ל
+                    <Link href="/terms" target="_blank" className="font-bold underline text-brand-700 hover:text-brand-900 mx-1">
+                      תנאי השימוש
+                    </Link>
+                    ול
+                    <Link href="/privacy" target="_blank" className="font-bold underline text-brand-700 hover:text-brand-900 mx-1">
+                      מדיניות הפרטיות
+                    </Link>
+                    של קשר טוב.
+                  </span>
+                </label>
+
                 <Button
                   type="submit"
                   variant="primary"

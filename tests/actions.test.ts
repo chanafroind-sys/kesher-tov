@@ -89,4 +89,10 @@ describe("Server Actions in Mock/Dev mode", () => {
     const notifsRes = await listInAppNotifications();
     expect(notifsRes.ok).toBe(true);
   });
+
+  it("handles account deletion irreversibly", async () => {
+    const { deleteAccount } = await import("@/lib/actions/profile");
+    const res = await deleteAccount();
+    expect(res.ok).toBe(true);
+  });
 });

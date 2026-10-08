@@ -2,16 +2,20 @@
 
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { getProfile, updateProfile, setPaymentPreference, type ProfileData } from "@/lib/actions/profile";
+import { useRouter } from "next/navigation";
+import { getProfile, updateProfile, setPaymentPreference, deleteAccount, type ProfileData } from "@/lib/actions/profile";
 import { Button, Card, Input, Select, Badge, Toast, Avatar } from "@/components/ui";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [field, setField] = useState("");
   const [years, setYears] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePending, setDeletePending] = useState(false);
 
   // Payment preference
   const [paymentType, setPaymentType] = useState<"bank" | "cash" | "charity" | "waive">("bank");
@@ -305,6 +309,71 @@ export default function ProfilePage() {
           </Button>
         </div>
       </form>
+
+      {/* Danger Zone: Delete Account */}
+      <Card variant="default" className="border-rose-200 bg-rose-50/30 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-black text-rose-900">אזור מחיקת חשבון</h3>
+            <p className="text-xs text-rose-700 mt-1 max-w-lg leading-relaxed">
+              רוצה לעזוב את הקהילה? מחיקת החשבון מוחקת לצמיתות את הפרופיל שלך, קובץ קורות החיים, קישורי החברות וכל המידע המשויך. פעולה זו הינה בלתי הפיכה.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="danger"
+            size="sm"
+            onClick={() => setShowDeleteModal(true)}
+          >
+            מחקי את החשבון שלי
+          </Button>
+        </div>
+      </Card>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-fade-up">
+          <div className="max-w-md w-full bg-white rounded-3xl border border-rose-200 p-6 sm:p-8 space-y-6 shadow-lift text-center">
+            <span className="text-4xl block">⚠️</span>
+            <h2 className="text-2xl font-black text-rose-900">האם את בטוחה שברצונך למחוק את החשבון?</h2>
+            <p className="text-sm text-ink-600 leading-relaxed">
+              פעולה זו תמחק לצמיתות את הפרופיל שלך, את קובץ קורות החיים וכל המידע האישי שלך מהשרתים שלנו, ללא אפשרות שחזור.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <Button
+                type="button"
+                variant="danger"
+                size="md"
+                fullWidth
+                loading={deletePending}
+                onClick={async () => {
+                  setDeletePending(true);
+                  const res = await deleteAccount();
+                  setDeletePending(false);
+                  if (res.ok) {
+                    setShowDeleteModal(false);
+                    router.push("/");
+                    router.refresh();
+                  }
+                }}
+              >
+                כן, למחוק את החשבון לצמיתות
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                fullWidth
+                onClick={() => setShowDeleteModal(false)}
+              >
+                ביטול וחזרה
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
