@@ -1,14 +1,183 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   קשר טוב — Design tokens
+   Use these (bg-brand-600, text-ink-900, shadow-soft, animate-fade-up ...)
+   instead of raw hex values.
+   ========================================================================== */
 @theme {
-  --font-sans: var(--font-heebo), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-heebo), system-ui, "Segoe UI", Arial, sans-serif;
+
+  /* Brand — deep violet/indigo: trust, warmth, community */
+  --color-brand-50: #f4f2ff;
+  --color-brand-100: #ebe6ff;
+  --color-brand-200: #d8cfff;
+  --color-brand-300: #bba9ff;
+  --color-brand-400: #9a78ff;
+  --color-brand-500: #7c4dff;
+  --color-brand-600: #6a2ff5;
+  --color-brand-700: #5a20d8;
+  --color-brand-800: #4a1cae;
+  --color-brand-900: #3d1a8a;
+  --color-brand-950: #230c55;
+
+  /* Honey — warm amber accent: gratitude, celebration */
+  --color-honey-50: #fff9eb;
+  --color-honey-100: #ffefc6;
+  --color-honey-200: #ffdd88;
+  --color-honey-300: #ffc84a;
+  --color-honey-400: #ffb320;
+  --color-honey-500: #f99107;
+  --color-honey-600: #dd6a02;
+
+  /* Coral — soft rose accent */
+  --color-coral-100: #ffe4e6;
+  --color-coral-300: #fda4af;
+  --color-coral-400: #fb7185;
+  --color-coral-500: #f43f5e;
+
+  /* Mint — success / "done" */
+  --color-mint-50: #ecfdf5;
+  --color-mint-100: #d1fae5;
+  --color-mint-500: #10b981;
+  --color-mint-600: #059669;
+  --color-mint-700: #047857;
+
+  /* Neutrals */
+  --color-cream: #fbf8f3;
+  --color-ink-500: #6b6880;
+  --color-ink-600: #514e66;
+  --color-ink-700: #3a3750;
+  --color-ink-900: #1b1830;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 2px rgb(27 24 48 / 0.04), 0 8px 24px -6px rgb(27 24 48 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(27 24 48 / 0.04), 0 24px 48px -12px rgb(61 26 138 / 0.22);
+  --shadow-glow: 0 10px 40px -8px rgb(106 47 245 / 0.55);
+  --shadow-honey: 0 10px 34px -8px rgb(249 145 7 / 0.55);
+
+  /* Animations */
+  --animate-fade-up: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 10s ease-in-out infinite;
+  --animate-blob: blob 18s ease-in-out infinite;
+  --animate-shine: shine 6s linear infinite;
+  --animate-pop: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(var(--tw-rotate, 0));
+    }
+    50% {
+      transform: translateY(-14px) rotate(var(--tw-rotate, 0));
+    }
+  }
+  @keyframes blob {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(40px, -30px) scale(1.08);
+    }
+    66% {
+      transform: translate(-30px, 25px) scale(0.95);
+    }
+  }
+  @keyframes shine {
+    from {
+      background-position: 0% 50%;
+    }
+    to {
+      background-position: 200% 50%;
+    }
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgb(16 185 129 / 0.55);
+    }
+    100% {
+      box-shadow: 0 0 0 14px rgb(16 185 129 / 0);
+    }
+  }
 }
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+/* Larger base size: our users are not technical and work on desktops.
+   1rem = 18px everywhere. */
+html {
+  font-size: 112.5%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  font-family: var(--font-heebo), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-950);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-brand-400);
+  outline-offset: 3px;
+  border-radius: 0.75rem;
+}
+
+/* Animated gradient text */
+.text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brand-600),
+    var(--color-coral-400),
+    var(--color-honey-400),
+    var(--color-brand-600)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-shine);
+}
+
+/* Subtle dotted texture for sections */
+.bg-dots {
+  background-image: radial-gradient(rgb(61 26 138 / 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
