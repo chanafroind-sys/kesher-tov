@@ -4,6 +4,8 @@ import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getProfile, updateProfile, setPaymentPreference, deleteAccount, type ProfileData } from "@/lib/actions/profile";
+import { getReliability } from "@/lib/actions/ratings";
+import type { UserReliability } from "@/lib/reliability";
 import { Button, Card, Input, Select, Badge, Toast, Avatar } from "@/components/ui";
 
 export default function ProfilePage() {
@@ -27,6 +29,7 @@ export default function ProfilePage() {
   const [cvSuccess, setCvSuccess] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [reliability, setReliability] = useState<UserReliability | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -41,6 +44,11 @@ export default function ProfilePage() {
         setYears(res.data.yearsOfExperience || 0);
         setPaymentType(res.data.paymentPreference.type);
         setPaymentDetails(res.data.paymentPreference.details || "");
+      }
+
+      const relRes = await getReliability();
+      if (relRes.ok) {
+        setReliability(relRes.data);
       }
     }
     loadData();
@@ -125,6 +133,95 @@ export default function ProfilePage() {
           <span>🔔 הגדרות התראות</span>
         </Link>
       </Card>
+
+      {/* Community Reliability Card */}
+      {reliability && (
+        <Card variant="default" className="text-start space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black text-ink-900">מדדי אמינות ואמון בקהילה</h2>
+              <p className="text-xs text-ink-500 mt-1">
+                מדדי האמינות מחושבים בשקיפות כדי להבטיח עזרה הדדית, רצינות וסגירת משימות הוגנת.
+              </p>
+            </div>
+            <Badge variant={reliability.seeker.isRestricted || reliability.helper.isDeprioritized ? "coral" : "mint"}>
+              {reliability.seeker.isRestricted || reliability.helper.isDeprioritized ? "הגבלה פעילה" : "חשבון במצב מעולה"}
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Seeker Metrics */}
+            <div className="p-5 rounded-2xl bg-cream/50 border border-ink-900/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-ink-900 text-sm">כנעזרת (מחפשת עבודה)</span>
+                <span className="text-xs text-ink-500">
+                  {reliability.seeker.showMetrics ? `${reliability.seeker.taskCount} משימות` : "מתחת ל-3 משימות"}
+                </span>
+              </div>
+              {reliability.seeker.showMetrics ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-ink-600">סגירה הוגנת של משימות</span>
+                    <span className="font-bold text-ink-900">{reliability.seeker.fairCloseRate}%</span>
+                  </div>
+                  <div className="w-full bg-ink-200/50 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-brand-600 h-2 rounded-full transition-all"
+                      style={{ width: `${reliability.seeker.fairCloseRate}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs pt-1">
+                    <span className="text-ink-600">דיוק התאמה ממוצע</span>
+                    <span className="font-bold text-ink-900">{reliability.seeker.matchAccuracyAvg}%</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-ink-500">
+                  מדדי הנעזרת יוצגו לאחר פתיחת 3 משימות לפחות.
+                </p>
+              )}
+              {reliability.seeker.isRestricted && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                  ⚠️ הוגבלת ל-2 משימות פתוחות במקביל עקב דיווחים על אי-סגירת משימות.
+                </div>
+              )}
+            </div>
+
+            {/* Helper Metrics */}
+            <div className="p-5 rounded-2xl bg-cream/50 border border-ink-900/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-ink-900 text-sm">כעוזרת (עובדת חברה)</span>
+                <span className="text-xs text-ink-500">
+                  {reliability.helper.showMetrics ? `${reliability.helper.helpedCount} סיועים` : "מתחת ל-3 סיועים"}
+                </span>
+              </div>
+              {reliability.helper.showMetrics ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-ink-600">אחוז מענה ורצינות</span>
+                    <span className="font-bold text-ink-900">{reliability.helper.replyRate}%</span>
+                  </div>
+                  <div className="w-full bg-ink-200/50 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-brand-600 h-2 rounded-full transition-all"
+                      style={{ width: `${reliability.helper.replyRate}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-ink-500">
+                  מדדי העוזרת יוצגו לאחר סיוע ב-3 משימות לפחות.
+                </p>
+              )}
+              {reliability.helper.isDeprioritized && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                  ⚠️ תעדוף המשימות שלך הונמך זמנית עקב משימות שלקחת ללא מענה חוזר.
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Main Profile Form */}
       <form onSubmit={handleSaveProfile} className="space-y-8">

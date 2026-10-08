@@ -4,6 +4,11 @@ import { z } from "zod";
 import type { ActionResult } from "./types";
 import { isMockMode, notImplementedError } from "./types";
 import type { TaskStatus, ClaimStatus } from "@/types/database";
+import {
+  calculateMatchScore,
+  getSeekerLimits,
+  checkUserBlockedStatus,
+} from "@/lib/reliability";
 
 export interface TaskRequirement {
   text: string;
@@ -64,16 +69,32 @@ const createTaskSchema = z.object({
 /** Create a new help task with job requirements and calculated match score */
 export async function createTask(
   rawInput: z.input<typeof createTaskSchema>
-): Promise<ActionResult<{ taskId: string }>> {
+): Promise<ActionResult<{ taskId: string; matchScore: number }>> {
   const parse = createTaskSchema.safeParse(rawInput);
   if (!parse.success) {
     return { ok: false, error: parse.error.issues[0]?.message || "קלט יצירת משימה לא תקין" };
   }
 
+  const seekerId = "mock-seeker-id";
+
+  // Check if seeker is blocked due to 3+ reports
+  const blockedStatus = checkUserBlockedStatus(seekerId);
+  if (blockedStatus.isBlocked) {
+    return {
+      ok: false,
+      error: "חשבונך מושעה עקב דיווחים חוזרים. לא ניתן לפתוח משימות חדשות.",
+    };
+  }
+
+  // Check seeker open tasks limit (default 5, restricted to 2 if 3+ not_closed flags)
+  const limits = getSeekerLimits(seekerId);
+
+  const matchScore = calculateMatchScore(parse.data.requirements || []);
+
   if (isMockMode()) {
     return {
       ok: true,
-      data: { taskId: `mock-task-${Date.now()}` },
+      data: { taskId: `mock-task-${Date.now()}`, matchScore },
     };
   }
   return notImplementedError();
