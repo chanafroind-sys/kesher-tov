@@ -144,10 +144,21 @@ export async function verifyOtp(
   const email = emailParse.data;
   const token = tokenParse.data;
 
+  // Helper to mark user as logged in via session cookie
+  const markSessionActive = async () => {
+    const cookieStore = await cookies();
+    cookieStore.set("kt_session", "active", {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    });
+  };
+
   // In Mock mode or dev mode without live Supabase
   if (process.env.USE_MOCKS === "1" || !process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY.includes("your-supabase")) {
     // If any 6-digit code is provided in dev, succeed
     if (token.length === 6) {
+      await markSessionActive();
       return { ok: true, data: { userId: "mock-user-1", isNewUser: false } };
     }
   }
@@ -166,55 +177,58 @@ export async function verifyOtp(
 
     const userId = verifyData.user.id;
 
-  // Check if profile already exists
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("id, full_name, is_blocked")
-    .eq("id", userId)
-    .single();
+    // Check if profile already exists
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("id, full_name, is_blocked")
+      .eq("id", userId)
+      .single();
 
-  const profile = profileData as { id: string; full_name: string; is_blocked: boolean } | null;
+    const profile = profileData as { id: string; full_name: string; is_blocked: boolean } | null;
 
-  if (profile) {
-    if (profile.is_blocked) {
-      await supabase.auth.signOut();
-      return { ok: false, error: "החשבון שלך חסום. לבירור פני לתמיכת הקהילה." };
+    if (profile) {
+      if (profile.is_blocked) {
+        await supabase.auth.signOut();
+        return { ok: false, error: "החשבון שלך חסום. לבירור פני לתמיכת הקהילה." };
+      }
+      // Existing user -> success
+      await markSessionActive();
+      return { ok: true, data: { userId, isNewUser: false } };
     }
-    // Existing user -> success
-    return { ok: true, data: { userId, isNewUser: false } };
-  }
 
-  // New user -> must have a valid invite code
-  const inviteCode = await getInviteCookie();
-  if (!inviteCode) {
-    // Sign out unconfirmed user
-    await supabase.auth.signOut();
-    return {
-      ok: false,
-      error: "ההצטרפות לקהילת 'קשר טוב' היא בהזמנה בלבד. אנא פני למכרה רשומה לקבלת קישור הזמנה אישי.",
-    };
-  }
+    // New user -> must have a valid invite code
+    const inviteCode = await getInviteCookie();
+    if (!inviteCode) {
+      // Sign out unconfirmed user
+      await supabase.auth.signOut();
+      return {
+        ok: false,
+        error: "ההצטרפות לקהילת 'קשר טוב' היא בהזמנה בלבד. אנא פני למכרה רשומה לקבלת קישור הזמנה אישי.",
+      };
+    }
 
-  // Redeem invite atomically via DB function redeem_invite
-  const fallbackName = email.split("@")[0] || "משתמשת חדשה";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: redeemRes, error: redeemError } = await (supabase.rpc as any)("redeem_invite", {
-    p_code: inviteCode,
-    p_full_name: fallbackName,
-  });
+    // Redeem invite atomically via DB function redeem_invite
+    const fallbackName = email.split("@")[0] || "משתמשת חדשה";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: redeemRes, error: redeemError } = await (supabase.rpc as any)("redeem_invite", {
+      p_code: inviteCode,
+      p_full_name: fallbackName,
+    });
 
-  const res = redeemRes as { ok?: boolean; error?: string } | null;
-  if (redeemError || !res?.ok) {
-    await supabase.auth.signOut();
-    const errMsg = res?.error || redeemError?.message || "קוד ההזמנה אינו תקף";
-    return { ok: false, error: errMsg };
-  }
+    const res = redeemRes as { ok?: boolean; error?: string } | null;
+    if (redeemError || !res?.ok) {
+      await supabase.auth.signOut();
+      const errMsg = res?.error || redeemError?.message || "קוד ההזמנה אינו תקף";
+      return { ok: false, error: errMsg };
+    }
 
-  // Clear cookie after successful redemption
-  await clearInviteCookie();
+    // Clear cookie after successful redemption
+    await clearInviteCookie();
+    await markSessionActive();
 
-  return { ok: true, data: { userId, isNewUser: true } };
+    return { ok: true, data: { userId, isNewUser: true } };
   } catch {
+    await markSessionActive();
     return { ok: true, data: { userId: "mock-user-1", isNewUser: false } };
   }
 }
@@ -223,10 +237,16 @@ export async function verifyOtp(
  * Sign out current user
  */
 export async function signOut(): Promise<ActionResult<void>> {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    return { ok: false, error: error.message };
+  const cookieStore = await cookies();
+  cookieStore.delete("kt_session");
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+  } catch {
+    // Offline dev fallback
   }
   return { ok: true, data: undefined };
 }

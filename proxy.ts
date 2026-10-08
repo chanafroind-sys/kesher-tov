@@ -37,6 +37,9 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const hasSession = request.cookies.get("kt_session")?.value;
+  const isAuthenticated = !!user || !!hasSession;
+
   const path = request.nextUrl.pathname;
 
   // Protected paths (anything inside app/(app) routes)
@@ -47,7 +50,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/settings") ||
     path.startsWith("/hired");
 
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("returnUrl", path);
     return NextResponse.redirect(loginUrl);

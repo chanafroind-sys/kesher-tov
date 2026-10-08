@@ -6,7 +6,7 @@ import { listMyFeed, type FeedItem } from "@/lib/actions/tasks";
 import { Button, Card, Badge, EmptyState } from "@/components/ui";
 import { TaskCard } from "@/components/task";
 
-export default function AppHomePage() {
+export function AppDashboard() {
   const [loading, setLoading] = useState(true);
   const [helperTasks, setHelperTasks] = useState<FeedItem[]>([]);
   const [seekerTasks, setSeekerTasks] = useState<FeedItem[]>([]);

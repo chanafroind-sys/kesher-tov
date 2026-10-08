@@ -12,7 +12,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invitedByParam = searchParams.get("invitedBy");
-
+  const returnUrlParam = searchParams.get("returnUrl") || "/";
 
   const [email, setEmail] = useState("");
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
@@ -97,7 +97,7 @@ function LoginForm() {
           if (res.data.isNewUser) {
             setStep("welcome_choice");
           } else {
-            router.push("/");
+            router.push(returnUrlParam);
             router.refresh();
           }
         } else {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { SignOutButton } from "@/components/nav/SignOutButton";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -71,10 +72,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
               className="hidden sm:flex items-center gap-2 rounded-full border border-ink-900/10 bg-white py-1.5 px-3 text-sm font-semibold text-ink-700 shadow-soft hover:bg-ink-50"
             >
               <span className="grid place-items-center size-7 rounded-full bg-brand-100 text-brand-800 text-xs font-bold">
-                ק
+                ש
               </span>
               <span>הפרופיל שלי</span>
             </Link>
+
+            {/* Sign Out Button */}
+            <SignOutButton />
           </div>
         </div>
       </header>
