@@ -28,7 +28,7 @@ const addCompanySchema = z.object({
 
 /** Search companies by name or alias with helper counts */
 export async function searchCompanies(
-  rawInput: z.infer<typeof searchSchema>
+  rawInput: z.input<typeof searchSchema>
 ): Promise<ActionResult<CompanySearchResult[]>> {
   const parse = searchSchema.safeParse(rawInput);
   if (!parse.success) {
@@ -55,7 +55,7 @@ export async function searchCompanies(
 
 /** Add a new company manually if not present in catalog */
 export async function addCompany(
-  rawInput: z.infer<typeof addCompanySchema>
+  rawInput: z.input<typeof addCompanySchema>
 ): Promise<ActionResult<CompanySearchResult>> {
   const parse = addCompanySchema.safeParse(rawInput);
   if (!parse.success) {

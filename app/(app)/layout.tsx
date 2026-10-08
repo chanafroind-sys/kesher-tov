@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { SignOutButton } from "@/components/nav/SignOutButton";
+import { NotificationBell } from "@/components/nav/NotificationBell";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -39,32 +40,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </nav>
           </div>
 
-          {/* Actions & Bell Placeholder */}
+          {/* Actions & Bell */}
           <div className="flex items-center gap-3">
-            {/* Bell placeholder for J11 */}
-            <button
-              type="button"
-              aria-label="התראות"
-              title="התראות (ימומש במשימה J11)"
-              className="relative grid place-items-center size-10 rounded-full border border-ink-900/10 bg-white text-ink-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 hover:bg-brand-50/50"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
-              {/* Unread indicator dot */}
-              <span className="absolute top-2 start-2 size-2 rounded-full bg-brand-500 ring-2 ring-white" />
-            </button>
+            {/* Live Notification Bell */}
+            <NotificationBell />
 
             {/* User Profile Avatar / Link */}
             <Link

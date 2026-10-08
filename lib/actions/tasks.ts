@@ -63,7 +63,7 @@ const createTaskSchema = z.object({
 
 /** Create a new help task with job requirements and calculated match score */
 export async function createTask(
-  rawInput: z.infer<typeof createTaskSchema>
+  rawInput: z.input<typeof createTaskSchema>
 ): Promise<ActionResult<{ taskId: string }>> {
   const parse = createTaskSchema.safeParse(rawInput);
   if (!parse.success) {

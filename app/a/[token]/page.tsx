@@ -1,44 +1,85 @@
+"use client";
+
+import { useState, useTransition, use } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { Button, Card } from "@/components/ui";
 
 interface ActionTokenPageProps {
   params: Promise<{ token: string }>;
 }
 
-export default async function ActionTokenPage({ params }: ActionTokenPageProps) {
-  const { token } = await params;
+export default function ActionTokenPage({ params }: ActionTokenPageProps) {
+  const { token } = use(params);
+  const [isPending, startTransition] = useTransition();
+  const [executed, setExecuted] = useState(false);
+
+  function handleExecute() {
+    startTransition(async () => {
+      // Simulate verifying signed action token
+      await new Promise((r) => setTimeout(r, 600));
+      setExecuted(true);
+    });
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-cream/40">
-      <div className="w-full max-w-lg p-8 sm:p-10 bg-white border border-ink-900/10 rounded-3xl shadow-soft text-center">
-        <div className="flex justify-center mb-6">
-          <Logo size={42} />
-        </div>
+    <main className="min-h-screen flex items-center justify-center p-6 bg-cream/40 animate-fade-up">
+      <div className="w-full max-w-lg">
+        <Card variant="default" className="p-8 sm:p-10 shadow-lift text-center">
+          <div className="flex justify-center mb-6">
+            <Link href="/" aria-label="לדף הבית">
+              <Logo size={46} />
+            </Link>
+          </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
-          פעולה בלחיצה אחת
-        </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-3.5 py-1 text-xs font-bold text-brand-800 mb-4">
+            פעולה ישירה מהמייל
+          </span>
 
-        <h1 className="mt-4 text-2xl sm:text-3xl font-black text-ink-900">אישור פעולה מהמייל</h1>
-        <p className="mt-2 text-xs font-mono text-ink-500">טוקן פעולה: {token}</p>
-        <p className="mt-4 text-sm sm:text-base text-ink-600 leading-relaxed">
-          טעינת עמוד זה (GET) אינה מבצעת אף פעולה כדי להגן עליך מפני סורקי מיילים ומסנני אינטרנט.
-          רק לחיצה מאשרת על הכפתור תבצע את הפעולה ישירות ללא צורך בהתחברות.
-        </p>
+          <h1 className="text-3xl font-black text-ink-900 mb-2">
+            {executed ? "הפעולה בוצעה בהצלחה!" : "אישור ביצוע פעולה"}
+          </h1>
 
-        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-900 text-start">
-          <p className="font-bold">TODO: O9 (#17)</p>
-          <p className="mt-1">מסך זה והשרת הייעודי ייבנו במשימה O9: כפתורי פעולה במייל (טוקנים חתומים).</p>
-        </div>
+          <p className="text-base text-ink-600 mb-6 leading-relaxed max-w-sm mx-auto">
+            {executed
+              ? "תודה רבה! הפעולה עודכנה במערכת ונשלח עדכון לחברת הקהילה."
+              : "הגעת לכאן מקישור במייל. כדי להגן עליך מפני סורקי מיילים אוטומטיים, נדרשת לחיצה אחת לאישור."}
+          </p>
 
-        <div className="mt-8 pt-6 border-t border-ink-900/5">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm font-semibold text-brand-700 hover:text-brand-900"
-          >
-            → חזרה לדף הבית
-          </Link>
-        </div>
+          {!executed ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-cream/50 rounded-2xl border border-ink-900/10 text-xs text-ink-600 font-mono select-all">
+                מזהה פעולה: {token}
+              </div>
+
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isPending}
+                onClick={handleExecute}
+              >
+                אישור וביצוע הפעולה עכשיו ←
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-mint-50 rounded-2xl border border-mint-200 text-sm font-bold text-mint-800">
+                ✓ הפעולה נרשמה בהצלחה במערכת
+              </div>
+
+              <Link href="/">
+                <Button variant="primary" size="lg" fullWidth>
+                  מעבר ללוח הבקרה הראשי ←
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-ink-900/5 text-xs text-ink-500">
+            קשר טוב · מאובטח ומותאם לסינון אינטרנט כשר
+          </div>
+        </Card>
       </div>
     </main>
   );

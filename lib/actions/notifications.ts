@@ -42,7 +42,7 @@ export async function getNotificationPrefs(): Promise<ActionResult<NotificationP
 
 /** Update user notification preferences (frequency and digest hour) */
 export async function setNotificationPrefs(
-  rawInput: z.infer<typeof notifPrefsSchema>
+  rawInput: z.input<typeof notifPrefsSchema>
 ): Promise<ActionResult<{ success: boolean }>> {
   const parse = notifPrefsSchema.safeParse(rawInput);
   if (!parse.success) {

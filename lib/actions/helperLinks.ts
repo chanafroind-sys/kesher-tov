@@ -56,7 +56,7 @@ export async function getHelperLinks(): Promise<ActionResult<HelperCompanyLink[]
 
 /** Save and update helper company links with relation and help capabilities */
 export async function setHelperLinks(
-  rawInput: z.infer<typeof setHelperLinksSchema>
+  rawInput: z.input<typeof setHelperLinksSchema>
 ): Promise<ActionResult<{ count: number }>> {
   const parse = setHelperLinksSchema.safeParse(rawInput);
   if (!parse.success) {
