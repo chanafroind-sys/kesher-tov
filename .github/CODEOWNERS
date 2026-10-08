@@ -1,0 +1,16 @@
+# Owner-only paths (see CLAUDE.md "Folder ownership").
+# Any PR touching these requires review from @chanafroind-sys.
+
+/supabase/migrations/   @chanafroind-sys
+/supabase/functions/    @chanafroind-sys
+/lib/db/                @chanafroind-sys
+/lib/actions/           @chanafroind-sys
+/lib/tokens/            @chanafroind-sys
+/types/database.ts      @chanafroind-sys
+/app/layout.tsx         @chanafroind-sys
+/app/globals.css        @chanafroind-sys
+/proxy.ts               @chanafroind-sys
+/package.json           @chanafroind-sys
+/package-lock.json      @chanafroind-sys
+/.github/               @chanafroind-sys
+/CLAUDE.md              @chanafroind-sys

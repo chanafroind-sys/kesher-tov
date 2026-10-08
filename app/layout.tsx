@@ -9,8 +9,9 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: "קשר טוב | פלטפורמת עזרה הדדית",
-  description: "רשת עזרה הדדית קהילתית למציאת עבודה וחיבורים מקצועיים",
+  title: "קשר טוב | עזרה הדדית במציאת עבודה",
+  description:
+    "מישהי כבר עובדת שם — והיא רוצה לעזור לך. רשת קהילתית שמחברת בין מחפשות עבודה לנשים שעובדות בחברות.",
 };
 
 export default function RootLayout({
@@ -20,9 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      <body className="min-h-full flex flex-col font-sans antialiased bg-slate-50 text-slate-900">
-        {children}
-      </body>
+      <body className="min-h-screen flex flex-col antialiased">{children}</body>
     </html>
   );
 }
